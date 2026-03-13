@@ -8,7 +8,6 @@ C.HEIGHT = 900
 C.PLAYER_ACCEL      = 10
 C.PLAYER_IFRAMES    = 2.0   -- seconds of immunity after taking damage
 C.MAX_BULLETS       = 3
-C.BULLET_COOLDOWN   = 0.5   -- seconds between shots
 
 -- Bullet
 C.BULLET_SPEED      = 700

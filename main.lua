@@ -11,6 +11,7 @@ local cursor -- current cursor image (menu vs in-game)
 function love.load()
     -- Load all images, sounds, and fonts once
     Assets.load()
+    love.audio.setVolume(0.5)
 
     -- Hide the OS cursor; we draw our own
     love.mouse.setVisible(false)

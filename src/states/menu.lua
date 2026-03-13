@@ -10,9 +10,10 @@
 --   * Draw_Instruction() was called from mousepressed() — it's a draw
 --     function. State is now a flag (showInstructions) toggled in callbacks.
 
-local Assets = require("src.assets")
-local Audio  = require("src.systems.audio")
-local C      = require("src.constants")
+local Assets     = require("src.assets")
+local Audio      = require("src.systems.audio")
+local C          = require("src.constants")
+local Background = require("src.ui.background")
 
 local Menu = {}
 Menu.__index = Menu
@@ -48,6 +49,7 @@ end
 
 -- ── Draw ─────────────────────────────────────────────────────────────────────
 function Menu:draw()
+    Background.draw()
     love.graphics.setColor(1, 1, 1, 1)
     if self.showInstructions then
         love.graphics.draw(Assets.images.instruction,   100, 100, 0, 1, 1, 0, 0)

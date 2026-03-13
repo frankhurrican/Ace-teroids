@@ -128,7 +128,6 @@ function Game:enter()
 
     self.stage2Init = false
     self.stage3Init = false
-    self.clickTime  = love.timer.getTime()
     self.cursor     = Assets.images.crosshair
 end
 
@@ -346,14 +345,11 @@ function Game:mousepressed(mx, my, button)
     if button == 1
         and not world.player.isDead
         and not world.win
-        and love.timer.getTime() - self.clickTime >= C.BULLET_COOLDOWN
+        and #world.bullets < C.MAX_BULLETS
     then
-        if #world.bullets < C.MAX_BULLETS then
-            local Bullet = require("src.entities.bullet")
-            table.insert(world.bullets, Bullet.new(world.player))
-            self.clickTime = love.timer.getTime()
-            Audio.playRandom("shoot", 0.3, 0.8)
-        end
+        local Bullet = require("src.entities.bullet")
+        table.insert(world.bullets, Bullet.new(world.player))
+        Audio.playRandom("shoot", 0.3, 0.8)
     end
 end
 
