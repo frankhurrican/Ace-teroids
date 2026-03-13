@@ -1,5 +1,5 @@
 function love.conf(t)
-    t.version           = "11.5"   -- Love2D will warn on startup if mismatched
+    t.version           = "11.4"   -- love.js WebAssembly runtime is 11.4
     t.title             = "Ace-teroids! A recreation of Asteroids by Frank Xu"
     t.window.width      = 900
     t.window.height     = 900
