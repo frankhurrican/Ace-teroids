@@ -25,3 +25,12 @@ Rewrote the entire project from a flat 22-file monolith into a clean `src/` layo
 
 ### Known gotcha: rebuilding the exe
 `rcedit` rewrites the PE and strips any data appended after the PE structure. Always apply the icon **before** fusing the `.love` file. See CLAUDE.md Distribution section for the full procedure.
+
+## 2026-03-13 — Bug fixes + web compatibility
+
+- **Bombs absorb bullets** — `checkBulletsVsBombs` was destroying bombs on hit; changed so only the bullet dies
+- **Bossboom sound one-shot** — `Audio.play("bossboom")` was inside `draw()` firing every frame; moved to the `on_boss_hit` one-shot trigger in `game.lua`
+- **heart.png rgba16** — was saved as 16-bit PNG (Photoshop default); love.js WebAssembly doesn't support rgba16; converted to 8-bit RGBA
+- **conf.lua version** — changed `11.5` → `11.4` to match love.js runtime (was showing compatibility warning)
+- **Web freeze on Start** — `love.mouse.setGrabbed(true)` triggers browser pointer lock at load time which hangs the WASM runtime; now skipped when `love.system.getOS() == "Web"`
+- **Audio delay on web** — inherent browser audio policy (context unlocks on first user interaction); not fully fixable, acceptable behaviour
