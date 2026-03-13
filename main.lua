@@ -28,8 +28,18 @@ function love.load()
     sm:push(Menu.new(sm))
 end
 
+-- DEBUG: catch and print errors to browser console (love.js → console.log)
+function love.errorhandler(msg)
+    print("LOVE ERROR: " .. tostring(msg) .. "\n" .. debug.traceback("", 2))
+    return function() return true end
+end
+
 function love.update(dt)
-    sm:update(dt)
+    local ok, err = xpcall(function() sm:update(dt) end, debug.traceback)
+    if not ok then
+        print("ERROR in love.update: " .. tostring(err))
+        return
+    end
 
     -- Switch cursor based on whether we are in gameplay
     local state = sm:current()
@@ -57,5 +67,8 @@ function love.mousemoved(x, y)
 end
 
 function love.mousepressed(x, y, button)
-    sm:mousepressed(x, y, button)
+    local ok, err = xpcall(function() sm:mousepressed(x, y, button) end, debug.traceback)
+    if not ok then
+        print("ERROR in love.mousepressed: " .. tostring(err))
+    end
 end
