@@ -108,9 +108,49 @@ Uses `util.circlesOverlap(x1,y1,r1, x2,y2,r2)` (correct Pythagorean distance). A
 | Change stage 2 spawn positions | `C.STAGE2_SHIP_XS` / `C.STAGE2_SHIPL_XS` in `src/constants.lua` |
 | Add a new sound | Add to `src/assets.lua` sounds table, call `Audio.play("name")` |
 | Boss attack patterns | `src/entities/boss.lua` update() |
+| Adjust master volume | `love.audio.setVolume(n)` in `love.load()` in `main.lua` (currently 0.5) |
+
+## Distribution
+
+### Rebuilding the standalone exe (bin/Ace-teroids.exe)
+
+The exe is Love2D 11.5 runtime + `Ace-teroids.love` fused together, with the player ship icon applied. Steps must be done in order:
+
+```bash
+# 1. Repackage the .love file
+cd project root
+# (use PowerShell Compress-Archive or zip) → Ace-teroids.love
+
+# 2. Apply icon FIRST (rcedit strips appended data if run after fuse)
+node_modules/rcedit/bin/rcedit-x64.exe bin/Ace-teroids.exe --set-icon assets/icon.ico
+
+# 3. Fuse AFTER icon
+python -c "
+exe = open('bin/Ace-teroids.exe','rb').read()
+love = open('Ace-teroids.love','rb').read()
+open('bin/Ace-teroids.exe','wb').write(exe + love)
+"
+```
+
+### Rebuilding the web build (docs/)
+
+Requires love.js (`npm install -g love.js`) and Python Pillow:
+
+```bash
+# Regenerate
+love.js Ace-teroids.love docs/ --title "Ace-teroids" --memory 33554432
+
+# Re-add SharedArrayBuffer fix for GitHub Pages
+curl https://raw.githubusercontent.com/gzuidhof/coi-serviceworker/master/coi-serviceworker.js -o docs/coi-serviceworker.js
+# Add <script src="coi-serviceworker.js"></script> as first line inside <head> in docs/index.html
+```
+
+Hosted at: https://frankhurrican.github.io/Ace-teroids/
 
 ## Lua / Love2D Notes
 
 - Runtime: **LuaJIT (Lua 5.1)**. Use `math.atan2(y, x)` not `math.atan(y, x)` — the two-argument form is Lua 5.3+. IDE warnings about `math.atan2` being deprecated are false positives (`.luarc.json` is configured for LuaJIT).
 - `love.timer.getTime()` used for cooldowns and lifetimes, not delta accumulation.
 - anim8 grids are created once per entity class via `ensureAssets()` guards; animations are cloned per instance.
+- Shooting is gated only by `C.MAX_BULLETS = 3` — no time-based cooldown. Rapid-clicking fires all 3 bullets immediately.
+- `bin/` contains Love2D 11.5 DLLs (OpenAL32, SDL2, love, lua51, mpg123, msvcp120, msvcr120) required to run the standalone exe.
