@@ -13,9 +13,12 @@ function love.load()
     Assets.load()
     love.audio.setVolume(0.5)
 
-    -- Hide the OS cursor; we draw our own
+    -- Hide the OS cursor; we draw our own.
+    -- setGrabbed is skipped on Web — pointer lock at load time hangs the WASM runtime.
     love.mouse.setVisible(false)
-    love.mouse.setGrabbed(true)
+    if love.system.getOS() ~= "Web" then
+        love.mouse.setGrabbed(true)
+    end
 
     cursor = Assets.images.crosshair_menu
 

@@ -186,8 +186,7 @@ function Collision.checkEnemiesVsPlayer(world)
     end
 end
 
--- Bullets vs bombs: player bullets can destroy bombs.
--- (Bug fix: original never set bomb.isDead on bullet hit.)
+-- Bullets vs bombs: bombs absorb player bullets (bullet dies, bomb survives).
 function Collision.checkBulletsVsBombs(world)
     for i = #world.bombs, 1, -1 do
         local bomb = world.bombs[i]
@@ -195,8 +194,7 @@ function Collision.checkBulletsVsBombs(world)
             for j = #world.bullets, 1, -1 do
                 local b = world.bullets[j]
                 if not b.isDead and util.circlesOverlap(bomb.x, bomb.y, bomb.w/2, b.x, b.y, b.w/2) then
-                    b.isDead    = true
-                    bomb.isDead = true   -- fixed: was commented out in original
+                    b.isDead = true   -- bullet absorbed; bomb survives
                     break
                 end
             end

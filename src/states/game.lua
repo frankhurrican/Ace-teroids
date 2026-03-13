@@ -114,6 +114,7 @@ function Game:enter()
             world.score           = world.score + 100
             world.final_explosion = newFinalExplosion(world.boss.x, world.boss.y)
             table.insert(world.explosions, newExplosion(world.boss.x, world.boss.y))
+            Audio.play("bossboom")
         else
             Audio.playRandom("bosshurt", 0.2, 0.6)
         end
@@ -321,7 +322,6 @@ function Game:draw()
             for _, o in ipairs(offsets) do
                 fe:draw(bx + o[1], by + o[2], 3, 3)
             end
-            Audio.play("bossboom")
             world.bombs = {}
         end
     end
