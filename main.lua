@@ -5,8 +5,9 @@
 local Assets = require("src.assets")
 local SM     = require("src.statemachine")
 
-local sm     -- state machine instance
-local cursor -- current cursor image (menu vs in-game)
+local sm       -- state machine instance
+local cursor   -- current cursor image (menu vs in-game)
+local debugErr -- last caught error string, rendered on canvas if set
 
 function love.load()
     -- Load all images, sounds, and fonts once
@@ -28,16 +29,15 @@ function love.load()
     sm:push(Menu.new(sm))
 end
 
--- DEBUG: catch and print errors to browser console (love.js → console.log)
-function love.errorhandler(msg)
-    print("LOVE ERROR: " .. tostring(msg) .. "\n" .. debug.traceback("", 2))
-    return function() return true end
+-- DEBUG: display errors on canvas so they're visible in the browser
+local function onError(err)
+    debugErr = err
 end
 
 function love.update(dt)
     local ok, err = xpcall(function() sm:update(dt) end, debug.traceback)
     if not ok then
-        print("ERROR in love.update: " .. tostring(err))
+        onError("UPDATE ERROR:\n" .. tostring(err))
         return
     end
 
@@ -48,6 +48,13 @@ function love.update(dt)
 end
 
 function love.draw()
+    if debugErr then
+        love.graphics.clear(0, 0, 0, 1)
+        love.graphics.setColor(1, 0.2, 0.2, 1)
+        love.graphics.setFont(Assets.fonts.hud)
+        love.graphics.printf(debugErr, 20, 20, love.graphics.getWidth() - 40)
+        return
+    end
     sm:draw()
     -- Custom cursor drawn on top of everything
     love.graphics.setColor(1, 1, 1, 1)
@@ -69,6 +76,6 @@ end
 function love.mousepressed(x, y, button)
     local ok, err = xpcall(function() sm:mousepressed(x, y, button) end, debug.traceback)
     if not ok then
-        print("ERROR in love.mousepressed: " .. tostring(err))
+        onError("MOUSEPRESSED ERROR:\n" .. tostring(err))
     end
 end
