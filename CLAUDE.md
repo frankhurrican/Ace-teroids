@@ -134,16 +134,16 @@ open('bin/Ace-teroids.exe','wb').write(exe + love)
 
 ### Rebuilding the web build (docs/)
 
-Requires love.js (`npm install -g love.js`) and Python Pillow:
+Use the build script — it handles packaging, love.js rebuild, and coi-serviceworker injection in one step:
 
 ```bash
-# Regenerate
-love.js Ace-teroids.love docs/ --title "Ace-teroids" --memory 33554432
-
-# Re-add SharedArrayBuffer fix for GitHub Pages
-curl https://raw.githubusercontent.com/gzuidhof/coi-serviceworker/master/coi-serviceworker.js -o docs/coi-serviceworker.js
-# Add <script src="coi-serviceworker.js"></script> as first line inside <head> in docs/index.html
+./build-web.sh           # build only
+./build-web.sh --serve   # build + serve at http://localhost:8000
 ```
+
+Requires love.js (`npm install -g love.js`). `coi-serviceworker.js` is kept in the project root as a stable copy and is copied into `docs/` by the script (love.js clears the output directory on each rebuild).
+
+For local testing without pushing: `python -m http.server 8000 --directory docs` — service workers require HTTP, so `file://` won't work.
 
 Hosted at: https://frankhurrican.github.io/Ace-teroids/
 
@@ -154,3 +154,45 @@ Hosted at: https://frankhurrican.github.io/Ace-teroids/
 - anim8 grids are created once per entity class via `ensureAssets()` guards; animations are cloned per instance.
 - Shooting is gated only by `C.MAX_BULLETS = 3` — no time-based cooldown. Rapid-clicking fires all 3 bullets immediately.
 - `bin/` contains Love2D 11.5 DLLs (OpenAL32, SDL2, love, lua51, mpg123, msvcp120, msvcr120) required to run the standalone exe.
+
+## Web Build (love.js) Pitfalls
+
+**love.js uses plain Lua 5.1 — not LuaJIT.** Code that works on desktop can silently break on web:
+
+| Feature | Desktop (LuaJIT) | Web (love.js / Lua 5.1) |
+| ------- | ---------------- | ----------------------- |
+| `goto` / `::label::` | ✅ LuaJIT extension | ❌ syntax error |
+| `math.atan(y, x)` two-arg | ✅ LuaJIT | ❌ use `math.atan2` |
+| `//` integer division | ✅ LuaJIT | ❌ |
+| `&` `\|` bitwise ops | ✅ LuaJIT | ❌ use `bit.band` etc. |
+
+**`goto` replacement** — use `repeat ... until true` with `break` as the Lua 5.1 `continue` idiom:
+
+```lua
+-- instead of goto next / ::next::, wrap the loop body:
+for i = #list, 1, -1 do
+  repeat
+    if skip_condition then break end
+    -- ... rest of body ...
+  until true
+end
+```
+
+**`love.mouse.setGrabbed(true)` at load time hangs the WASM runtime** — pointer lock requires a user gesture on web. Skip it:
+
+```lua
+if love.system.getOS() ~= "Web" then
+    love.mouse.setGrabbed(true)
+end
+```
+
+**Debugging web errors** — the browser canvas captures F12. Instead, wrap love callbacks in `xpcall` and render errors on canvas:
+
+```lua
+function love.update(dt)
+    local ok, err = xpcall(function() sm:update(dt) end, debug.traceback)
+    if not ok then
+        -- store err and draw it in love.draw() via love.graphics.printf
+    end
+end
+```
