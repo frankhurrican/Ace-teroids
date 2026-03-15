@@ -38,8 +38,9 @@ function Collision.checkBullets(world)
     local C = require("src.constants")
 
     for i = #world.bullets, 1, -1 do
+      repeat  -- repeat/until true = Lua 5.1 continue idiom (break skips to next bullet)
         local b = world.bullets[i]
-        if b.isDead then goto next_bullet end
+        if b.isDead then break end
 
         -- vs asteroids
         local asteroid_groups = {
@@ -62,7 +63,7 @@ function Collision.checkBullets(world)
                 end
             end
         end
-        if b.isDead then goto next_bullet end
+        if b.isDead then break end
 
         -- vs stage-2 ships
         local ship_groups = {
@@ -85,7 +86,7 @@ function Collision.checkBullets(world)
                 end
             end
         end
-        if b.isDead then goto next_bullet end
+        if b.isDead then break end
 
         -- vs boss
         if world.boss and not world.boss.isDead then
@@ -95,8 +96,7 @@ function Collision.checkBullets(world)
                 world.on_boss_hit()
             end
         end
-
-        ::next_bullet::
+      until true
     end
 end
 
